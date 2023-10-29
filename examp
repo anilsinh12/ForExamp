@@ -1,5 +1,26 @@
+    <!-- Toast Message -->
+    <!-- Design -->
+    <Button
+    android:id="@+id/myButton"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Click Me" />
+
+    <!-- code -->
+    Button myButton = findViewById(R.id.myButton);
+
+    myButton.setOnClickListener(new View.OnClickListener() {
+    @Override
+    public void onClick(View v) {
+        Toast.makeText(getApplicationContext(), "Button Clicked", Toast.LENGTH_SHORT).show();
+    }
+});
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 ---Activity Life cycle 
+=======================================================================================
+
 
 public class MainActivity extends Activity {
 

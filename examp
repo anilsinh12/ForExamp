@@ -1,4 +1,4 @@
-    <!-- Toast Message -->
+    1. <!-- Toast Message -->
     <!-- Design -->
     <Button
     android:id="@+id/myButton"
@@ -22,49 +22,55 @@
 =======================================================================================
 
 
+
+import android.app.Activity;
+import android.os.Bundle;
+import android.util.Log;
+
 public class MainActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Log.d("Lifecycle", "onCreate() called");
+        Log.e("Lifecycle", "onCreate() called");
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        Log.d("Lifecycle", "onStart() called");
+        Log.e("Lifecycle", "onStart() called");
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        Log.d("Lifecycle", "onResume() called");
+        Log.e("Lifecycle", "onResume() called");
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        Log.d("Lifecycle", "onPause() called");
+        Log.e("Lifecycle", "onPause() called");
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        Log.d("Lifecycle", "onStop() called");
+        Log.e("Lifecycle", "onStop() called");
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Log.d("Lifecycle", "onDestroy() called");
+        Log.e("Lifecycle", "onDestroy() called");
     }
 }
 
 
----
-vertical --
+2. <!-- ------------------------------------------------------- -->
+
+<!-- vertical -- -->
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -99,7 +105,8 @@ vertical --
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 
-----Horizontal
+3. <!-- =================================================================== -->
+<!-- ----Horizontal -->
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -129,8 +136,9 @@ vertical --
 
       </LinearLayout>
   </ScrollView>
+<!-- =============================================== -->
 
-<!-- ----Multiscreen -->
+4. <!-- ----Multiscreen -->
 
 <Button
     android:id="@+id/buttonOpenSecond"
@@ -163,9 +171,9 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-<!-- 
+<!-- -------------------------------------------------------------------
 ++++++++++++
-Authentications
+5.   Authentications
 ++++++++++ -->
 
 package com.example.vertical_sliding;
@@ -220,7 +228,7 @@ public class MainActivity extends AppCompatActivity {
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/button"
+
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:visibility="visible"
@@ -269,9 +277,11 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-----------
-ListView
-Design 
+<!-- ------------------------------------------------------------------
+6. ListViewDesign
+
+------ ---- -->
+ 
 <!-- activity_main.xml -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"

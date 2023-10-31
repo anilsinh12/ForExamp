@@ -287,3 +287,26 @@ the cookie's content.
                 Response.Cookies.Add(cookie);
             }
         }
+
+7. Write a program to check the length of the string in the text box using custom validation.
+ in asp.net
+
+ <asp:TextBox ID="txtInput" runat="server"></asp:TextBox>
+<asp:CustomValidator ID="customValidator" runat="server" ControlToValidate="txtInput"
+    ClientValidationFunction="validateInput" OnServerValidate="ServerValidate" 
+    Display="Dynamic" ErrorMessage="String length must be between 5 and 10 characters">
+</asp:CustomValidator>
+
+
+protected void ServerValidate(object source, ServerValidateEventArgs args)
+{
+    string inputText = txtInput.Text;
+    if (inputText.Length >= 5 && inputText.Length <= 10)
+    {
+        args.IsValid = true;
+    }
+    else
+    {
+        args.IsValid = false;
+    }
+}

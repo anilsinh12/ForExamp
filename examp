@@ -287,4 +287,3 @@ the cookie's content.
                 Response.Cookies.Add(cookie);
             }
         }
-

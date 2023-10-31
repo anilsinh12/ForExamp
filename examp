@@ -1,328 +1,290 @@
-    1. <!-- Toast Message -->
-    <!-- Design -->
-    <Button
-    android:id="@+id/myButton"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:text="Click Me" />
+1.   Label and Button controls
 
-    <!-- code -->
-    Button myButton = findViewById(R.id.myButton);
+    <%@ Page Language="C#" AutoEventWireup="true" CodeFile="Default.aspx.cs" Inherits="Default" %>
 
-    myButton.setOnClickListener(new View.OnClickListener() {
-    @Override
-    public void onClick(View v) {
-        Toast.makeText(getApplicationContext(), "Button Clicked", Toast.LENGTH_SHORT).show();
-    }
-});
+    <!DOCTYPE html>
 
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    <html xmlns="http://www.w3.org/1999/xhtml">
+    <head runat="server">
+        <title>Welcome to ASP.NET</title>
+    </head>
+    <body>
+        <form id="form1" runat="server">
+            <h1>Welcome to ASP.NET</h1>
 
----Activity Life cycle 
-=======================================================================================
+            <asp:Button ID="btnShowMessage" runat="server" Text="Click" OnClick="btnShowMessage_Click" />
+            
+            <asp:Label ID="lblMessage" runat="server" Text=""></asp:Label>
+        </form>
+    </body>
+    </html>
 
+    _Default.aspx.cs
 
+    using System;
 
-import android.app.Activity;
-import android.os.Bundle;
-import android.util.Log;
-
-public class MainActivity extends Activity {
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        Log.e("Lifecycle", "onCreate() called");
+    public partial class Default : System.Web.UI.Page
+    {
+        protected void btnShowMessage_Click(object sender, EventArgs e)
+        {
+            lblMessage.Text = "Welcome to the world of ASP.NET";
+        }
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        Log.e("Lifecycle", "onStart() called");
+
+============================================================================
+ 
+ 2 . marks 
+
+ <%@ Page Language="C#" AutoEventWireup="true" CodeFile="Default.aspx.cs" Inherits="Default" %>
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title>Student Grade Calculator</title>
+</head>
+<body>
+    <form id="form1" runat="server">
+        <h1>Student Grade Calculator</h1>
+
+        <div>
+            <asp:Label ID="lblEnrollmentNo" runat="server" Text="Enrollment No:"></asp:Label>
+            <asp:TextBox ID="txtEnrollmentNo" runat="server"></asp:TextBox>
+        </div>
+
+        <div>
+            <asp:Label ID="lblStudentName" runat="server" Text="Student Name:"></asp:Label>
+            <asp:TextBox ID="txtStudentName" runat="server"></asp:TextBox>
+        </div>
+
+        <div>
+            <asp:Label ID="lblMarks" runat="server" Text="Enter Marks for 5 Subjects (comma-separated):"></asp:Label>
+            <asp:TextBox ID="txtMarks" runat="server"></asp:TextBox>
+        </div>
+
+        <asp:Button ID="btnCalculate" runat="server" Text="Calculate" OnClick="btnCalculate_Click" />
+        
+        <div>
+            <asp:Label ID="lblTotal" runat="server" Text="Total Marks:"></asp:Label>
+            <asp:Label ID="lblPercentage" runat="server" Text="Percentage:"></asp:Label>
+            <asp:Label ID="lblGrade" runat="server" Text="Grade:"></asp:Label>
+        </div>
+    </form>
+</body>
+</html>
+
+Default.aspx.cs
+
+using System;
+
+public partial class Default : System.Web.UI.Page
+{
+    protected void btnCalculate_Click(object sender, EventArgs e)
+    {
+        string[] marks = txtMarks.Text.Split(',');
+        int totalMarks = 0;
+
+        foreach (string mark in marks)
+        {
+            int subjectMarks;
+            if (int.TryParse(mark, out subjectMarks))
+            {
+                totalMarks += subjectMarks;
+            }
+        }
+
+        lblTotal.Text = "Total Marks: " + totalMarks.ToString();
+        
+        if (totalMarks > 0)
+        {
+            double percentage = (totalMarks / 500.0) * 100;
+            lblPercentage.Text = "Percentage: " + percentage.ToString("0.00") + "%";
+        }
+
+        string grade = CalculateGrade(totalMarks);
+        lblGrade.Text = "Grade: " + grade;
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Log.e("Lifecycle", "onResume() called");
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        Log.e("Lifecycle", "onPause() called");
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        Log.e("Lifecycle", "onStop() called");
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        Log.e("Lifecycle", "onDestroy() called");
+    private string CalculateGrade(int totalMarks)
+    {
+        if (totalMarks >= 450)
+        {
+            return "A+";
+        }
+        else if (totalMarks >= 400)
+        {
+            return "A";
+        }
+        else if (totalMarks >= 350)
+        {
+            return "B";
+        }
+        else if (totalMarks >= 300)
+        {
+            return "C";
+        }
+        else if (totalMarks >= 250)
+        {
+            return "D";
+        }
+        else
+        {
+            return "F";
+        }
     }
 }
 
 
-2. <!-- ------------------------------------------------------- -->
+ 
+ =================================================
 
-<!-- vertical -- -->
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".MainActivity">
+ 4. Use of Radio button
+ -Default.cs
+ <%@ Page Language="C#" AutoEventWireup="true" CodeFile="Default.aspx.cs" Inherits="_Default" %>
 
-  <ScrollView
-      android:layout_width="wrap_content"
-      android:layout_height="match_parent">
+<!DOCTYPE html>
 
-      <LinearLayout
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:orientation="vertical">--
-
-          <ImageView
-              android:layout_width="411dp"
-              android:layout_height="match_parent"
-              android:src="@drawable/sc"/>
-          <ImageView
-              android:layout_width="411dp"
-              android:layout_height="match_parent"
-              android:src="@drawable/sc"/>
-           
-
-      </LinearLayout>
-  </ScrollView>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title>Gender Selection</title>
+</head>
+<body>
+    <form id="form1" runat="server">
+        <h1>Gender Selection</h1>
+        
+        <asp:RadioButton ID="maleRadio" runat="server" Text="Male" AutoPostBack="True" OnCheckedChanged="GenderSelection_CheckedChanged" GroupName="gender" />
+        <br />
+        <asp:RadioButton ID="femaleRadio" runat="server" Text="Female" AutoPostBack="True" OnCheckedChanged="GenderSelection_CheckedChanged" GroupName="gender" />
+        
+        <p>Selected gender: <asp:Label ID="genderLabel" runat="server" Text="Select a gender"></asp:Label></p>
+    </form>
+</body>
+</html>
 
 
+--Default.aspx.cs
+using System;
 
-</androidx.constraintlayout.widget.ConstraintLayout>
-
-3. <!-- =================================================================== -->
-<!-- ----Horizontal -->
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".MainActivity">
-
-  <ScrollView
-      android:layout_width="wrap_content"
-      android:layout_height="match_parent">
-
-      <LinearLayout
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:orientation="Horizontal">--
-
-          <ImageView
-              android:layout_width="411dp"
-              android:layout_height="match_parent"
-              android:src="@drawable/sc"/>
-          <ImageView
-              android:layout_width="411dp"
-              android:layout_height="match_parent"
-              android:src="@drawable/sc"/>
-           
-
-      </LinearLayout>
-  </ScrollView>
-<!-- =============================================== -->
-
-4. <!-- ----Multiscreen -->
-
-<Button
-    android:id="@+id/buttonOpenSecond"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:text="Open Second Activity"
-    android:onClick="openSecondActivity" />
-
-package com.example.vertical_sliding;
-import android.content.Intent;--
-
-
-import androidx.appcompat.app.AppCompatActivity;
-
-import android.os.Bundle;
-
-public class MainActivity extends AppCompatActivity {
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
+public partial class _Default : System.Web.UI.Page
+{
+    protected void Page_Load(object sender, EventArgs e)
+    {
     }
-    <!-- public void openSecondActivity(View view) {
-        Intent intent = new Intent(this, MainActivity2.class);
-        startActivity(intent);
-    } -->
+
+    protected void GenderSelection_CheckedChanged(object sender, EventArgs e)
+    {
+        RadioButton selectedRadio = sender as RadioButton;
+
+        if (selectedRadio != null)
+        {
+            genderLabel.Text = selectedRadio.Text;
+        }
+    }
+}
+======================================
+5 . List box and Image controls
+
+<%@ Page Language="C#" AutoEventWireup="true" CodeFile="Default.aspx.cs" Inherits="_Default" %>
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title>Image Viewer</title>
+</head>
+<body>
+    <form id="form1" runat="server">
+        <h1>Image Viewer</h1>
+        
+        <asp:ListBox ID="imageListBox" runat="server" AutoPostBack="True" OnSelectedIndexChanged="imageListBox_SelectedIndexChanged">
+            <asp:ListItem Text="Select an image" Value="" />
+            <asp:ListItem Text="Image 1" Value="image1.jpg" />
+            <asp:ListItem Text="Image 2" Value="image2.jpg" />
+            <asp:ListItem Text="Image 3" Value="image3.jpg" />
+        </asp:ListBox>
+        
+        <asp:Image ID="displayImage" runat="server" CssClass="image" />
+    </form>
+</body>
+</html>
+
+--Default.aspx.cs
+using System;
+
+public partial class _Default : System.Web.UI.Page
+{
+    protected void Page_Load(object sender, EventArgs e)
+    {
+        if (!IsPostBack)
+        {
+            // Initialize the ListBox selection.
+            imageListBox.SelectedIndex = 0;
+            DisplaySelectedImage();
+        }
+    }
+
+    protected void imageListBox_SelectedIndexChanged(object sender, EventArgs e)
+    {
+        // Display the selected image when a ListBox item is selected.
+        DisplaySelectedImage();
+    }
+
+    private void DisplaySelectedImage()
+    {
+        string selectedImage = imageListBox.SelectedValue;
+        displayImage.ImageUrl = string.IsNullOrEmpty(selectedImage) ? "" : $"Images/{selectedImage}";
+    }
 }
 
+===========================================
+ 6.  Write a program that has a form taking the user's name as input. Store this name in a permanent 
+cookie & whenever the page is opened again, then value of the name field should be attached with 
+the cookie's content.
 
 
-<!-- -------------------------------------------------------------------
-++++++++++++
-5.   Authentications
-++++++++++ -->
+        <%@ Page Language="C#" AutoEventWireup="true" CodeFile="Default.aspx.cs" Inherits="Default" %>
 
-package com.example.vertical_sliding;
+        <!DOCTYPE html>
 
-import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.TextView;
-
-import androidx.appcompat.app.AppCompatActivity;
-
-public class MainActivity extends AppCompatActivity {
-
-    private EditText usernameEditText, passwordEditText;
-    private TextView loginResultTextView;
-    private Button loginButton;
+        <html xmlns="http://www.w3.org/1999/xhtml">
+        <head runat="server">
+            <title>Cookie Example</title>
+        </head>
+        <body>
+            <form id="form1" runat="server">
+                <div>
+                    <asp:Label ID="lblMessage" runat="server" Text="Enter your name:" AssociatedControlID="txtName"></asp:Label>
+                    <asp:TextBox ID="txtName" runat="server"></asp:TextBox>
+                    <asp:Button ID="btnSave" runat="server" Text="Save" OnClick="btnSave_Click" />
+                </div>
+            </form>
+        </body>
+        </html>
 
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        using System;
+        using System.Web;
 
-        usernameEditText = findViewById(R.id.usernameEditText);
-        passwordEditText = findViewById(R.id.passwordEditText);
-        loginResultTextView = findViewById(R.id.loginResultTextView);
-        loginButton = findViewById(R.id.loginButton);
-
-        loginButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                String username = usernameEditText.getText().toString();
-                String password = passwordEditText.getText().toString();
-
-                if (isValidCredentials(username, password)) {
-                    loginResultTextView.setText("Login successful");
-                } else {
-                    loginResultTextView.setText("Login failed");
+        public partial class Default : System.Web.UI.Page
+        {
+            protected void Page_Load(object sender, EventArgs e)
+            {
+                if (!IsPostBack)
+                {
+                    if (Request.Cookies["UserName"] != null)
+                    {
+                        txtName.Text = Request.Cookies["UserName"].Value;
+                    }
                 }
             }
-        });
-    }
 
-    private boolean isValidCredentials(String username, String password) {
-        return username.equals("demo") && password.equals("password");
-    }
-}
+            protected void btnSave_Click(object sender, EventArgs e)
+            {
+                HttpCookie cookie = new HttpCookie("UserName");
+                cookie.Value = txtName.Text;
+                cookie.Expires = DateTime.Now.AddYears(1); // Set the cookie to expire in a year
+                Response.Cookies.Add(cookie);
+            }
+        }
 
-<!-- ===== Design -->
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:visibility="visible"
-    tools:context=".MainActivity">
-
-
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:padding="16dp"
-        tools:context=".LoginActivity">
-
-        <EditText
-            android:id="@+id/usernameEditText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Username"
-            android:inputType="text" />
-
-        <EditText
-            android:id="@+id/passwordEditText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Password"
-            android:inputType="textPassword" />
-
-        <Button
-            android:id="@+id/loginButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Login" />
-
-        <TextView
-            android:id="@+id/loginResultTextView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text=""
-            android:textColor="#FF0000" />
-    </LinearLayout>
-</androidx.constraintlayout.widget.ConstraintLayout>
-
-
-
-<!-- ------------------------------------------------------------------
-6. ListViewDesign
-
------- ---- -->
- 
-<!-- activity_main.xml -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp"
-    tools:context=".MainActivity">
-
-    <ListView
-        android:id="@+id/listView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-</LinearLayout>
-
-
-<!-- package com.example.vertical_sliding;
-
-import android.os.Bundle;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
- 
-
-import androidx.appcompat.app.AppCompatActivity;
-
-public class MainActivity extends AppCompatActivity {
-
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        ListView listView = findViewById(R.id.listView);
-
-        String[] items = {"PIZZA", "BURGER", "SANDWICH"};
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, items);
-
-        listView.setAdapter(adapter);
-    }
-
-} -->

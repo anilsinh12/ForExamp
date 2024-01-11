@@ -358,6 +358,76 @@ function tour_shortcode($atts) {
 add_shortcode('display_tours', 'tour_shortcode');
 
 
+-------------
+     function tour_shortcode($atts) {
+    $atts = shortcode_atts(
+        array(
+            'posts_per_page' => -1,
+            'tour_type'      => '',
+            'day_night'      => '',
+            'high_service'   => '',
+        ),
+        $atts,
+        'display_tours'
+    );
+
+    $meta_query = array();
+
+    // Add conditions based on the shortcode parameters
+    if (!empty($atts['tour_type'])) {
+        $meta_query[] = array(
+            'key'   => '_tour_type',
+            'value' => sanitize_text_field($atts['tour_type']),
+        );
+    }
+
+    if (!empty($atts['day_night'])) {
+        $meta_query[] = array(
+            'key'   => '_day_night',
+            'value' => sanitize_text_field($atts['day_night']),
+        );
+    }
+
+    if (!empty($atts['high_service']) && $atts['high_service'] === 'true') {
+        $meta_query[] = array(
+            'key'   => '_high_service',
+            'value' => 'on',
+        );
+    }
+
+    $tour_query_args = array(
+        'post_type'      => 'tour',
+        'posts_per_page' => intval($atts['posts_per_page']),
+        'meta_query'     => $meta_query,
+    );
+
+    $tour_query = new WP_Query($tour_query_args);
+
+    ob_start();
+
+    if ($tour_query->have_posts()) {
+        while ($tour_query->have_posts()) : $tour_query->the_post();
+            $tour_type = get_post_meta(get_the_ID(), '_tour_type', true);
+            $day_night = get_post_meta(get_the_ID(), '_day_night', true);
+            $high_service = get_post_meta(get_the_ID(), '_high_service', true);
+            ?>
+            <div class="tour-item">
+                <h2><?php the_title(); ?></h2>
+                <p><strong>Tour Type:</strong> <?php echo esc_html($tour_type); ?></p>
+                <p><strong>Day/Night:</strong> <?php echo esc_html($day_night); ?></p>
+                <p><strong>High Service:</strong> <?php echo ($high_service === 'on') ? 'Yes' : 'No'; ?></p>
+            </div>
+            <?php
+        endwhile;
+        wp_reset_postdata();
+    } else {
+        echo 'No tours found.';
+    }
+
+    return ob_get_clean();
+}
+
+add_shortcode('display_tours', 'tour_shortcode');
 
 
 

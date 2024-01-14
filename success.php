@@ -464,4 +464,357 @@ add_shortcode('display_tours', 'tour_shortcode');
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ // Create employee table on theme activation
+ function create_employee_table() {
+    global $wpdb;
+
+    $table_name = $wpdb->prefix . 'employees';
+
+    if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
+        $charset_collate = $wpdb->get_charset_collate();
+
+        $sql = "CREATE TABLE $table_name (
+            empid INT NOT NULL AUTO_INCREMENT,
+            empname VARCHAR(100) NOT NULL,
+            department VARCHAR(50),
+            contactNo INT(20),
+            email VARCHAR(100) NOT NULL,
+            PRIMARY KEY (empid)
+        ) $charset_collate;";
+
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+        dbDelta($sql);
+
+        // Insert static data
+        $wpdb->insert(
+            $table_name,
+            array(
+                'empname'    => 'John Doe',
+                'department' => 'IT',
+                'contactNo'  => '1234567890',
+                'email'      => 'john.doe@example.com',
+            )
+        );
+
+        // Insert more static data if needed
+        $wpdb->insert(
+            $table_name,
+            array(
+                'empname'    => 'Jane Smith',
+                'department' => 'HR',
+                'contactNo'  => '9876543210',
+                'email'      => 'jane.smith@example.com',
+            )
+        );
+    }
+}
+register_activation_hook(__FILE__, 'create_employee_table');
+
+if (!class_exists('WP_List_Table')) {
+    require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
+}
+
+class Employee_List_Table extends WP_List_Table {
+    function get_columns() {
+        $columns = array(
+            'empid'      => 'Employee ID',
+            'empname'    => 'Employee Name',
+            'department' => 'Department',
+            'contactNo'  => 'Contact Number',
+            'email'      => 'Email',
+        );
+        return $columns;
+    }
+
+    function prepare_items() {
+        $per_page = 5;
+        $current_page = $this->get_pagenum();
+        $total_items = $this->get_total_items();
+        $data = $this->get_employees($per_page, $current_page);
+
+        $this->_column_headers = array($this->get_columns(), array(), array());
+        $this->items = $data;
+
+        $this->set_pagination_args(array(
+            'total_items' => $total_items,
+            'per_page'    => $per_page,
+        ));
+    }
+
+    function get_total_items() {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'employees';
+
+        return $wpdb->get_var("SELECT COUNT(empid) FROM $table_name");
+    }
+
+    function get_employees($per_page = 5, $page_number = 1) {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'employees';
+
+        $orderby = !empty($_GET["orderby"]) ? sanitize_text_field($_GET["orderby"]) : 'empid';
+        $order = !empty($_GET["order"]) ? sanitize_text_field($_GET["order"]) : 'DESC';
+
+        $offset = ($page_number - 1) * $per_page;
+
+        $sql = "SELECT * FROM $table_name ORDER BY $orderby $order LIMIT $offset, $per_page";
+        return $wpdb->get_results($sql, ARRAY_A);
+    }
+}
+
+function employee_management_menu() {
+    add_menu_page(
+        'Employee Management',
+        'Employee Management',
+        'manage_options',
+        'employee_management',
+        'employee_management_page'
+    );
+}
+add_action('admin_menu', 'employee_management_menu');
+
+function employee_management_page() {
+    $employee_table = new Employee_List_Table();
+    $employee_table->prepare_items();
+
+    // Insert Data into Table
+    if (isset($_POST['insert_employee'])) {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'employees';
+
+        $empname = sanitize_text_field($_POST['empname']);
+        $department = sanitize_text_field($_POST['department']);
+        $contactNo = sanitize_text_field($_POST['contactNo']);
+        $email = sanitize_text_field($_POST['email']);
+
+        $wpdb->insert(
+            $table_name,
+            array(
+                'empname'    => $empname,
+                'department' => $department,
+                'contactNo'  => $contactNo,
+                'email'      => $email,
+            )
+        );
+
+        // Refresh the page to display the new data
+        echo '<script>window.location.reload();</script>';
+    }
+
+    ?>
+    <div class="wrap">
+        <h1 class="wp-heading-inline">Employee Management</h1>
+
+        <!-- Search Form -->
+        <form method="post">
+            <div style="margin-bottom: 20px; display: flex; justify-content: flex-end; align-items: center;">
+                <label for="search-field" style="margin-right: 10px;">Search Employees:</label>
+                <select name="search-field">
+                    <option value="empid">Employee ID</option>
+                    <option value="empname">Employee Name</option>
+                    <option value="department">Department</option>
+                    <option value="contactNo">Contact Number</option>
+                    <option value="email">Email</option>
+                </select>
+                <input type="text" name="s" value="<?php echo esc_attr($employee_table->get_search_text()); ?>" placeholder="Search...">
+                <input type="submit" name="search" value="Search" class="button button-primary">
+            </div>
+        </form>
+
+        <!-- Form for Manual Data Insertion -->
+        <form method="post">
+            <h2>Add New Employee</h2>
+            <label for="empname">Employee Name:</label>
+            <input type="text" name="empname" required>
+            <label for="department">Department:</label>
+            <input type="text" name="department">
+            <label for="contactNo">Contact Number:</label>
+            <input type="text" name="contactNo">
+            <label for="email">Email:</label>
+            <input type="email" name="email" required>
+            <input type="submit" name="insert_employee" value="Insert Employee" class="button button-primary">
+        </form>
+
+        <?php
+        // Display the Employee List Table
+        $employee_table->display();
+
+        // Alternatively, if you want to manually display employee data without the list table
+        $employees = $employee_table->get_employees();
+        ?>
+        <table class="wp-list-table widefat fixed striped">
+            <thead>
+                <tr>
+                    <th>Employee Id</th>
+                    <th>Employee Name</th>
+                    <th>Department</th>
+                    <th>Contact</th>
+                    <th>Email</th>
+                    <!-- Add more columns if needed -->
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($employees as $employee) : ?>
+                    <tr>
+                        <td><?php echo $employee['empid']; ?></td>
+                        <td><?php echo $employee['empname']; ?></td>
+                        <td><?php echo $employee['department']; ?></td>
+                        <td><?php echo $employee['contactNo']; ?></td>
+                        <td><?php echo $employee['email']; ?></td>
+                        <!-- Add more columns if needed -->
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+
+    <style>
+        /* Add this to your theme's style.css */
+
+        .wrap form {
+            margin-bottom: 20px;
+        }
+
+        .wrap form label {
+            margin-right: 10px;
+        }
+    </style>
+    <?php
+}
+
+
+// // cutom post / custom templet
+// function custom_post_template($single_template) {
+//     global $post;
+
+//     if ($post->post_type == 'tour') {
+//         $single_template = get_template_directory() . '/single-tour.php';
+//     }
+
+//     return $single_template;
+// }
+// add_filter('single_template', 'custom_post_template');
+
+// Register Custom Post Type
+function custom_post_type() {
+    $labels = array(
+        'name'               => 'Custom Posts',
+        'singular_name'      => 'Custom Post',
+        'menu_name'          => 'Custom Posts',
+        'all_items'          => 'All Custom Posts',
+        'add_new'            => 'Add New',
+        'add_new_item'       => 'Add New Custom Post',
+        'edit_item'          => 'Edit Custom Post',
+        'new_item'           => 'New Custom Post',
+        'view_item'          => 'View Custom Post',
+        'search_items'       => 'Search Custom Posts',
+        'not_found'          => 'No custom posts found',
+        'not_found_in_trash' => 'No custom posts found in Trash',
+    );
+    $args = array(
+        'labels'             => $labels,
+        'public'             => true,
+        'has_archive'        => true,
+        'publicly_queryable' => true,
+        'show_ui'            => true,
+        'show_in_menu'       => true,
+        'menu_position'      => 5,
+        'menu_icon'          => 'dashicons-book-alt', // You can choose a different dashicon
+        'query_var'          => true,
+        'rewrite'            => array('slug' => 'custom-posts'),
+        'capability_type'    => 'post',
+        'supports'           => array('title', 'editor', 'thumbnail', 'excerpt', 'comments'),
+    );
+    register_post_type('custom_post', $args);
+
+    // Register Custom Taxonomy
+    $taxonomy_labels = array(
+        'name'              => 'Custom Categories',
+        'singular_name'     => 'Custom Category',
+        'search_items'      => 'Search Custom Categories',
+        'all_items'         => 'All Custom Categories',
+        'parent_item'       => 'Parent Custom Category',
+        'parent_item_colon' => 'Parent Custom Category:',
+        'edit_item'         => 'Edit Custom Category',
+        'update_item'       => 'Update Custom Category',
+        'add_new_item'      => 'Add New Custom Category',
+        'new_item_name'     => 'New Custom Category Name',
+        'menu_name'         => 'Custom Categories',
+    );
+    $taxonomy_args = array(
+        'hierarchical'      => true,
+        'labels'            => $taxonomy_labels,
+        'show_ui'           => true,
+        'show_admin_column' => true,
+        'query_var'         => true,
+        'rewrite'           => array('slug' => 'custom-category'),
+    );
+    register_taxonomy('custom_category', array('custom_post'), $taxonomy_args);
+}
+add_action('init', 'custom_post_type');
+
+// Flush rewrite rules to make custom post type and taxonomy work
+function custom_rewrite_flush() {
+    custom_post_type();
+    flush_rewrite_rules();
+}
+add_action('after_switch_theme', 'custom_rewrite_flush');
+
+
+function custom_posts_shortcode($atts) {
+    // Shortcode attributes
+    $atts = shortcode_atts(
+        array(
+            'category' => '',
+        ),
+        $atts,
+        'custom_posts'
+    );
+
+    // Query custom posts based on the category
+    $args = array(
+        'post_type'      => 'custom_post',
+        'posts_per_page' => -1,
+        'tax_query'      => array(
+            array(
+                'taxonomy' => 'custom_category',
+                'field'    => 'slug',
+                'terms'    => $atts['category'],
+            ),
+        ),
+    );
+    $query = new WP_Query($args);
+
+    // Display custom posts
+    if ($query->have_posts()) {
+        $output = '<ul>';
+        while ($query->have_posts()) {
+            $query->the_post();
+            $output .= '<li><a href="' . get_permalink() . '">' . get_the_title() . '</a></li>';
+        }
+        $output .= '</ul>';
+        wp_reset_postdata();
+        return $output;
+    } else {
+        return 'No custom posts found.';
+    }
+}
+add_shortcode('custom_posts', 'custom_posts_shortcode');
  
+

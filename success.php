@@ -15,38 +15,107 @@
 
 
 <?php
-if (!class_exists('WP_List_Table')) {
-    require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
-}
 
-function enqueue_child_styles() {
-    wp_enqueue_style('parent-style', get_template_directory_uri() . '/style.css');
-    wp_enqueue_style('child-style', get_stylesheet_directory_uri() . '/style.css', array('parent-style'), wp_get_theme()->get('Version'));
-}
-add_action('wp_enqueue_scripts', 'enqueue_child_styles');
+ // wp list table
 
+ // Create employee table on theme activation
  function create_employee_table() {
     global $wpdb;
 
     $table_name = $wpdb->prefix . 'employees';
 
-    $charset_collate = $wpdb->get_charset_collate();
+    if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
+        $charset_collate = $wpdb->get_charset_collate();
 
-    $sql = "CREATE TABLE $table_name (
-        empid INT NOT NULL AUTO_INCREMENT,
-        empname VARCHAR(100) NOT NULL,
-        department VARCHAR(50),
-        contactNo VARCHAR(20),
-        email VARCHAR(100) NOT NULL,
-        PRIMARY KEY (empid)
-    ) $charset_collate;";
+        $sql = "CREATE TABLE $table_name (
+            empid INT NOT NULL AUTO_INCREMENT,
+            empname VARCHAR(100) NOT NULL,
+            department VARCHAR(50),
+            contactNo INT(20),
+            email VARCHAR(100) NOT NULL,
+            PRIMARY KEY (empid)
+        ) $charset_collate;";
 
-    require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-    dbDelta($sql);
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+        dbDelta($sql);
+
+        // Insert static data
+        $wpdb->insert(
+            $table_name,
+            array(
+                'empname'    => 'John Doe',
+                'department' => 'IT',
+                'contactNo'  => '1234567890',
+                'email'      => 'john.doe@example.com',
+            )
+        );
+
+        // Insert more static data if needed
+        $wpdb->insert(
+            $table_name,
+            array(
+                'empname'    => 'Jane Smith',
+                'department' => 'HR',
+                'contactNo'  => '9876543210',
+                'email'      => 'jane.smith@example.com',
+            )
+        );
+    }
 }
-add_action('init', 'create_employee_table');
+register_activation_hook(__FILE__, 'create_employee_table');
 
- 
+if (!class_exists('WP_List_Table')) {
+    require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
+}
+
+class Employee_List_Table extends WP_List_Table {
+    function get_columns() {
+        $columns = array(
+            'empid'      => 'Employee ID',
+            'empname'    => 'Employee Name',
+            'department' => 'Department',
+            'contactNo'  => 'Contact Number',
+            'email'      => 'Email',
+        );
+        return $columns;
+    }
+
+    function prepare_items() {
+        $per_page = 5;
+        $current_page = $this->get_pagenum();
+        $total_items = $this->get_total_items();
+        $data = $this->get_employees($per_page, $current_page);
+
+        $this->_column_headers = array($this->get_columns(), array(), array());
+        $this->items = $data;
+
+        $this->set_pagination_args(array(
+            'total_items' => $total_items,
+            'per_page'    => $per_page,
+        ));
+    }
+
+    function get_total_items() {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'employees';
+
+        return $wpdb->get_var("SELECT COUNT(empid) FROM $table_name");
+    }
+
+    function get_employees($per_page = 5, $page_number = 1) {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'employees';
+
+        $orderby = !empty($_GET["orderby"]) ? sanitize_text_field($_GET["orderby"]) : 'empid';
+        $order = !empty($_GET["order"]) ? sanitize_text_field($_GET["order"]) : 'DESC';
+
+        $offset = ($page_number - 1) * $per_page;
+
+        $sql = "SELECT * FROM $table_name ORDER BY $orderby $order LIMIT $offset, $per_page";
+        return $wpdb->get_results($sql, ARRAY_A);
+    }
+}
+
 function employee_management_menu() {
     add_menu_page(
         'Employee Management',
@@ -59,142 +128,105 @@ function employee_management_menu() {
 add_action('admin_menu', 'employee_management_menu');
 
 function employee_management_page() {
+    $employee_table = new Employee_List_Table();
+    $employee_table->prepare_items();
     ?>
     <div class="wrap">
         <h1 class="wp-heading-inline">Employee Management</h1>
-        <a href="#" class="page-title-action">Add New</a>
+        <?php $employee_table->search_box('Search Employees', 'search-employee'); ?>
 
-        <?php
-        // Handle the form submission to add a new employee
-        if (isset($_POST['action']) && $_POST['action'] === 'add_employee') {
-            $new_employee = array(
-                'empid'      => $_POST['empid'],
-                'empname'    => sanitize_text_field($_POST['empname']),
-                'department' => sanitize_text_field($_POST['department']),
-                'contactNo'  => sanitize_text_field($_POST['contactNo']),
-                'email'      => sanitize_email($_POST['email']),
-            );
-
-            // Add the new employee to your database or array
-            // Add your logic here to save the employee data
-            // For demonstration purposes, let's assume $data is an array representing your table data
-            $data[] = $new_employee;
-        }
-
-        // Display the add employee form
-        ?>
+        <!-- Form for Manual Data Insertion -->
         <form method="post">
-            <input type="hidden" name="action" value="add_employee">
-
-            <label for="empid">Employee ID:</label>
-            <input type="text" name="empid" required><br>
-
+            <h2>Add New Employee</h2>
             <label for="empname">Employee Name:</label>
-            <input type="text" name="empname" required><br>
-
+            <input type="text" name="empname" required>
             <label for="department">Department:</label>
-            <input type="text" name="department"><br>
-
+            <input type="text" name="department">
             <label for="contactNo">Contact Number:</label>
-            <input type="text" name="contactNo"><br>
-
+            <input type="text" name="contactNo">
             <label for="email">Email:</label>
-            <input type="text" name="email" required><br>
-
-            <input type="submit" value="Add Employee">
+            <input type="email" name="email" required>
+            <input type="submit" name="insert_employee" value="Insert Employee">
         </form>
 
-
         <?php
-        $data = array(); 
-        // Your WP_List_Table initialization and display code goes here
-        $employee_table = new Employee_List_Table($data);
-        $employee_table->prepare_items();
+        // Insert Data into Table
+        if (isset($_POST['insert_employee'])) {
+            global $wpdb;
+            $table_name = $wpdb->prefix . 'employees';
+
+            $empname = sanitize_text_field($_POST['empname']);
+            $department = sanitize_text_field($_POST['department']);
+            $contactNo = sanitize_text_field($_POST['contactNo']);
+            $email = sanitize_text_field($_POST['email']);
+
+            $wpdb->insert(
+                $table_name,
+                array(
+                    'empname'    => $empname,
+                    'department' => $department,
+                    'contactNo'  => $contactNo,
+                    'email'      => $email,
+                )
+            );
+
+            // Refresh the page to display the new data
+            echo '<script>window.location.reload();</script>';
+        }
+
+        // Display the Employee List Table
         $employee_table->display();
+
+
+
+
+
+
+        // Alternatively, if you want to manually display employee data without the list table
+            $employees = $employee_table->get_employees();
+            ?>
+            <table class="wp-list-table widefat fixed striped">
+                <thead>
+                    <tr>
+                        <th>Employee Id</th>
+                        <th>Employee Name</th>
+                        <th>department</th>
+                        <th>contact</th>
+                        <th>Email</th>
+                        <!-- Add more columns if needed -->
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($employees as $employee) : ?>
+                        <tr>
+                            <td><?php echo $employee['empid']; ?></td>
+                            <td><?php echo $employee['empname']; ?></td>
+                            <td><?php echo $employee['department']; ?></td>
+                            <td><?php echo $employee['contactNo']; ?></td>
+                            <td><?php echo $employee['email']; ?></td>
+                            <!-- Add more columns if needed -->
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
         ?>
     </div>
     <?php
 }
-class Employee_List_Table extends WP_List_Table {
- 
-    private $data;
 
-    function __construct($data = array()) {
-        parent::__construct(array(
-            'singular' => 'employee',
-            'plural'   => 'employees',
-            'ajax'     => false,
-        ));
 
-        $this->data = $data;
-    }
 
-    function column_default($item, $column_name) {
-        return $item[$column_name];
-    }
 
-    function column_empname($item) {
-        $actions = array(
-            'edit'   => sprintf('<a href="?page=%s&action=%s&empid=%s">Edit</a>', $_REQUEST['page'], 'edit', $item['empid']),
-            'delete' => sprintf('<a href="?page=%s&action=%s&empid=%s">Delete</a>', $_REQUEST['page'], 'delete', $item['empid']),
-        );
 
-        return sprintf('%1$s %2$s', $item['empname'], $this->row_actions($actions));
-    }
 
-    function column_id_and_name($item) {
-        return sprintf('%1$s (ID: %2$s)', $item['empname'], $item['empid']);
-    }
 
-    function get_columns() {
-        $columns = array(
-            'empid'      => 'Employee ID',
-            'empname'    => 'Employee Name',
-            'department' => 'Department',
-            'contactNo'  => 'Contact Number',
-            'email'      => 'Email',
-            'id_and_name' => 'ID and Name', // New column for nested table
-        );
 
-        return $columns;
-    }
 
-    function get_sortable_columns() {
-        $sortable_columns = array(
-            'empid'      => array('empid', false),
-            'empname'    => array('empname', false),
-            'department' => array('department', false),
-            'contactNo'  => array('contactNo', false),
-            'email'      => array('email', false),
-        );
 
-        return $sortable_columns;
-    }
-function prepare_items() {
-    $columns = $this->get_columns();
-    $hidden = array();
-    $sortable = $this->get_sortable_columns();
 
-    // Pagination
-    $per_page = 10;
-    $current_page = $this->get_pagenum();
-    $total_items = count($this->data); // Ensure $data is an array
 
-    $data_slice = array_slice($this->data, (($current_page - 1) * $per_page), $per_page);
 
-    $this->_column_headers = array($columns, $hidden, $sortable);
 
-    $this->items = $data_slice;
-    
-    $this->set_pagination_args(
-        array(
-            'total_items' => $total_items,
-            'per_page'    => $per_page,
-            'total_pages' => ceil($total_items / $per_page),
-        )
-    );
-}
-}
 
 
 
